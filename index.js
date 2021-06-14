@@ -58,6 +58,15 @@ function addEventListeners(st) {
 router.hooks({
   before: (done, params) => {
     const page = params && params.hasOwnProperty("page") ? capitalize(params.page) : "Home";
+    console.log('matsinet-page:', page);
+    if (page === "Pizzas") {
+      state.Pizzas.pizzas = [];
+      console.log('matsinet-state.Pizzas.pizzas:', state.Pizzas.pizzas);
+      axios.get(`${process.env.PIZZAS_API_URL}/pizzas`).then(response => {
+        state.Pizzas.pizzas = response.data;
+        done(); 
+      });
+    }
 
     if (page === "Blog") {
       state.Blog.posts = [];

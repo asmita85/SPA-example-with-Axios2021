@@ -106,6 +106,33 @@ footer {
   }
 }
 
+#pizzas {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1.2em;
+  height: auto;
+  width: 92.5%;
+  margin: auto;
+  margin-top: 50px;
+}
+
+#pizzas tbody {
+  width: 100%;
+  
+}
+
+#pizzas th {
+  text-align: left;
+}
+
+td th :not(:last-child) {
+  width: 25%;
+  display: inline;
+}
+
+td:last-child {
+  display: inline-block;
+}
+
 @media (min-width: 550px) {
   nav > ul {
     display: flex;

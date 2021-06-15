@@ -67,5 +67,5 @@ app.route("/**").get((request, response) => {
     response.status(404).send("NOT FOUND");
 });
 
-const PORT = process.env.PORT || 4040; // we use || to provide a default value
+const PORT = process.env.PORT || 443; // we use || to provide a default value
 app.listen(4040, () => console.log("Listening on port 4040"));

@@ -4,7 +4,7 @@ const express = require("express");
 const pizzas = require("./controllers/pizzas");
 const orders = require("./controllers/orders");
 
-
+console.log("port", process.env.DB_CONNECT );
 const dbConnect = process.env.DB_CONNECT || "mongodb://localhost/pizzas";
 mongoose.connect(dbConnect);
 const app = express();

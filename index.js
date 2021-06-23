@@ -4,6 +4,15 @@ import axios from "axios";
 import Navigo from "navigo";
 import { capitalize } from "lodash";
 
+let API_URL;
+
+if (process.env.API_URL) {
+  API_URL = process.env.API_URL || "http://localhost:4040";
+} else {
+  console.error("Please create the .env file with a value for API_URL");
+}
+
+
 const router = new Navigo(window.location.origin);
 
 function render(st = state.Home) {
@@ -17,6 +26,7 @@ function render(st = state.Home) {
   router.updatePageLinks();
 
   addEventListeners(st);
+
 }
 
 function addEventListeners(st) {
@@ -96,6 +106,21 @@ router.hooks({
   }
 });
 
+function fetchDataByView(st = state.Home) {
+  switch (st.view) {
+    case "Pizza":
+      axios
+        .get("http://localhost:4040/pizzas")
+        .then(response => {
+          state[st.view].pizzas = response.data;
+        })
+        .catch(error => {
+          console.log("It puked", error);
+        });
+      break;
+  }
+}
+fetchDataByView(state.Home);
 router
   .on({
     "/": () => render(state.Home),

@@ -1,70 +1,80 @@
-require('dotenv').config();
-const mongoose = require('mongoose')
 const express = require("express");
+const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
 const pizzas = require("./controllers/pizzas");
 const orders = require("./controllers/orders");
 
-const dbConnect = process.env.DB_CONNECT || "mongodb://localhost/pizzas";
-mongoose.connect(dbConnect);
+dotenv.config();
+
 const app = express();
-const db = mongoose.connection;
 
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', console.log.bind(console, 'Successfully opened connection to Mongo!'));
-
-const myMiddleware = (request, response, next) => {
-    // do something with request and/or response
-    request.foobar = "Savvy";
-    next(); // tell express to move to the next middleware function
+// Middleware
+const logging = (request, response, next) => {
+  console.log(`${request.method} ${request.url} ${Date.now()}`);
+  next();
 };
 
 // CORS Middleware
 const cors = (req, res, next) => {
-    res.setHeader(
-        "Access-Control-Allow-Headers",
-        "X-Requested-With,content-type, Accept,Authorization,Origin"
-    );
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader(
-        "Access-Control-Allow-Methods",
-        "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-    );
-    res.setHeader("Access-Control-Allow-Credentials", true);
-    next();
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "X-Requested-With,content-type, Accept,Authorization,Origin"
+  );
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  );
+  res.setHeader("Access-Control-Allow-Credentials", true);
+  next();
 };
 
-app.use(express.json());
-app.use(myMiddleware); // use the myMiddleware for every request to the app
+app.use(bodyParser.json());
 app.use(cors);
+app.use(logging);
 
-//testing app
-app.route("/")
-    .get((request, response) => {
-        response.send("HELLO WORLD");
-    })
-    .post((request, response) => {
-        response.json(request.body);
-    });
+const DB_CONNECT = process.env.DB_CONNECT || "mongodb://localhost/pizza";
 
-//  app.route("/pizzas/:id").get((request, response) => {
-//     // express adds a "params" Object to requests
-//     const id = request.params.id;
-//     // handle GET request for post with an id of "id"
-//     response.status(418).json({
-//         id: id,
-//         foobar : request.foobar
-//     });
-// });
+// Database stuff
+mongoose.connect(DB_CONNECT);
+const db = mongoose.connection;
 
+let db_status = "MongoDB connection not successful.";
 
+db.on("error", console.error.bind(console, "connection error:"));
+db.once("open", () => (db_status = "Successfully opened connection to Mongo!"));
+
+app.route("/").get((request, response) => {
+  response.send("HELLO WORLD");
+});
+
+app.get("/status", (request, response) => {
+  response.send(JSON.stringify({ message: "Service running ok" }));
+});
+
+app
+  .route("/posts")
+  .get((request, response) => {
+    // express adds a "params" Object to requests
+    const id = request.params.id;
+    let data = "The ID equals " + id;
+    // handle GET request for post with an id of "id"
+    if (request.query) {
+      if (request.query.type) {
+        if (request.query.type === "json") {
+          data = { id: request.params.id, q: request.query };
+        }
+      }
+    }
+    response.status(418).json(data);
+  })
+  .post((request, response) => {
+    response.json(request);
+  });
 
 app.use("/pizzas", pizzas);
 app.use("/orders", orders);
 
-//always last or it will catch any null 
-app.route("/**").get((request, response) => {
-    response.status(404).send("NOT FOUND");
-});
-
-const PORT = process.env.PORT || 4040; // we use || to provide a default value
-app.listen(4040, () => console.log("Listening on port 4040"));
+const PORT = process.env.DB_PORT || 4040;
+app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
